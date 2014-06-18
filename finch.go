@@ -3,7 +3,7 @@ package finch
 import (
   "fmt"
   //"log"
-  //"time"
+  "time"
   "github.com/GeertJohan/go.hid"
   )
 // TODO: change the return types to use structs instead of
@@ -28,7 +28,11 @@ func prepareFinchRequest() (data []byte) {
 
 //------------------------------------------------------------------------------
 func (finch *Finch) incrementSequenceNumber() {
-  panic("Not implemented")
+  if finch.sequence_number+1 > 255 {
+    finch.sequence_number = 0
+  } else {
+    finch.sequence_number++
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -95,12 +99,12 @@ func (finch *Finch) SetMotor(left_wheel_direction,
                                   left_wheel_speed,
                                   right_wheel_direction,
                                   right_wheel_speed byte) (n int, err error) {
-  if left_wheel_direction != 0 || left_wheel_direction != 1 {
+  if left_wheel_direction != 0 && left_wheel_direction != 1 {
     err := fmt.Errorf("The value of left wheel direction must lie be either 0 or 1. You have passed- %d", left_wheel_direction)
     return 0, err
   }
 
-  if right_wheel_direction != 0 || right_wheel_direction != 1 {
+  if right_wheel_direction != 0 && right_wheel_direction != 1 {
     err := fmt.Errorf("The value of right wheel direction must lie be either 0 or 1. You have passed- %d", right_wheel_direction)
     return 0, err
   }
@@ -131,10 +135,11 @@ func (finch *Finch) SetIdleMode() (n int, err error) {
   data[1] = 'R'
 
   n, err = finch.writeToFinch(data)
+  return
 }
 
 //------------------------------------------------------------------------------
-func (finch *Finch) SetBuzzer(msec, freq int) (n int, err error) {
+func (finch *Finch) SetBuzzer(msec, freq int, wait bool) (n int, err error) {
   data := prepareFinchRequest()
   data[1] = 'B'   // Ascii character 'O' for LED color set
   data[2] = byte(msec >> 8)   // value of red
@@ -143,12 +148,16 @@ func (finch *Finch) SetBuzzer(msec, freq int) (n int, err error) {
   data[5] = byte(freq)  // dummy data
 
   n, err = finch.writeToFinch(data)
+
+  if wait {
+    time.Sleep(time.Duration(msec)*time.Millisecond)
+  }
   return
 }
 
 //------------------------------------------------------------------------------
 func (finch *Finch) GetTemperature() (temp float64, err error) {
-  finch.sequence_number++
+  finch.incrementSequenceNumber()
 
   data := prepareFinchRequest()
   data[1] = 'T'   // Ascii character 'O' for LED color set
@@ -170,7 +179,7 @@ func (finch *Finch) GetTemperature() (temp float64, err error) {
 
 //------------------------------------------------------------------------------
 func (finch *Finch) GetLight() (left_sensor, right_sensor byte, err error) {
-  finch.sequence_number++
+  finch.incrementSequenceNumber()
 
   data := prepareFinchRequest()
   data[1] = 'L'
@@ -193,7 +202,7 @@ func (finch *Finch) GetLight() (left_sensor, right_sensor byte, err error) {
 
 //------------------------------------------------------------------------------
 func (finch *Finch) GetAcceleration() (x_axis, y_axis, z_axis byte, err error) {
-  finch.sequence_number++
+  finch.incrementSequenceNumber()
 
   data := prepareFinchRequest()
   data[1] = 'A'
@@ -217,7 +226,7 @@ func (finch *Finch) GetAcceleration() (x_axis, y_axis, z_axis byte, err error) {
 
 //------------------------------------------------------------------------------
 func (finch *Finch) GetObstacles() (left_sensor, right_sensor bool, err error) {
-  finch.sequence_number++
+  finch.incrementSequenceNumber()
 
   data := prepareFinchRequest()
   data[1] = 'I'

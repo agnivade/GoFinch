@@ -2,7 +2,6 @@ package finch
 
 import (
   "fmt"
-  //"log"
   "time"
   "github.com/GeertJohan/go.hid"
   )
@@ -38,7 +37,7 @@ func (finch *Finch) incrementSequenceNumber() {
 //------------------------------------------------------------------------------
 func (finch *Finch) writeToFinch(data []byte) (n int, err error) {
   n = 0
-  // Writing unless we see that we have atleast written something
+  // Writing until we see that we have atleast written something
   for n==0 {
     n, err = finch.finch_handle.Write(data)
   }
@@ -201,8 +200,12 @@ func (finch *Finch) GetLight() (left_sensor, right_sensor byte, err error) {
 }
 
 //------------------------------------------------------------------------------
-func (finch *Finch) GetAcceleration() (x_axis, y_axis, z_axis byte, err error) {
+func (finch *Finch) GetAcceleration() (x_axis, y_axis, z_axis float64,
+                                       tap, shake bool,
+                                       err error) {
   finch.incrementSequenceNumber()
+  tap = false
+  shake = false
 
   data := prepareFinchRequest()
   data[1] = 'A'
@@ -210,17 +213,34 @@ func (finch *Finch) GetAcceleration() (x_axis, y_axis, z_axis byte, err error) {
 
   _, err = finch.writeToFinch(data)
   if err != nil {
-      return 0, 0, 0, err
+      return 0, 0, 0, false, false, err
   }
 
   _, err = finch.readFromFinch(data)
   if err != nil {
-      return 0, 0, 0, err
+      return 0, 0, 0, false, false, err
   }
 
-  x_axis = data[1]
-  y_axis = data[2]
-  z_axis = data[3]
+  // A closure to convert the raw machine data into g's
+  convertToG := func(b byte) float64 {
+    if b > 31 {
+      b -= 64
+    }
+    return float64(b)*1.5 / 32
+  }
+  x_axis = convertToG(data[1])
+  y_axis = convertToG(data[2])
+  z_axis = convertToG(data[3])
+
+  bit_5 := data[4] & 0x20
+  bit_7 := data[4] & 0x80
+
+  if bit_5 == 0 {
+    tap = true
+  }
+  if bit_7 == 1 {
+    shake = true
+  }
   return
 }
 
@@ -244,12 +264,19 @@ func (finch *Finch) GetObstacles() (left_sensor, right_sensor bool, err error) {
 
   left_sensor = false
   right_sensor = false
-  if data[0] > 0 {
+
+  if data[0] == 0 {
+    left_sensor = false
+  } else if data[0] == 1 {
     left_sensor = true
   }
-  if data[1] > 0 {
+
+  if data[1] == 0 {
+    right_sensor = false
+  } else if data[1] == 1 {
     right_sensor = true
   }
+
   return
 }
 
@@ -260,7 +287,4 @@ func (finch *Finch) Close() () {
   // Then closing the handle to finch
   finch.finch_handle.Close()
 }
-
-
-
 

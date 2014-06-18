@@ -1,3 +1,5 @@
+// This is a Go implementation of the Finch API
+// For more information - visit http://www.finchrobot.com
 package finch
 
 import (
@@ -26,6 +28,8 @@ func prepareFinchRequest() (data []byte) {
 }
 
 //------------------------------------------------------------------------------
+// Increments the sequence no. of the request to finch
+// Rolls over to 0 if it exceeds 255
 func (finch *Finch) incrementSequenceNumber() {
   if finch.sequence_number+1 > 255 {
     finch.sequence_number = 0
@@ -35,6 +39,7 @@ func (finch *Finch) incrementSequenceNumber() {
 }
 
 //------------------------------------------------------------------------------
+// Helper function which writes to finch given a byte slice
 func (finch *Finch) writeToFinch(data []byte) (n int, err error) {
   n = 0
   // Writing until we see that we have atleast written something
@@ -45,6 +50,7 @@ func (finch *Finch) writeToFinch(data []byte) (n int, err error) {
 }
 
 //------------------------------------------------------------------------------
+// Helper function which reads from finch and fills a byte slice
 func (finch *Finch) readFromFinch(data []byte) (n int, err error) {
   n = len(data)
   if n <= 0 {
@@ -66,6 +72,7 @@ func (finch *Finch) readFromFinch(data []byte) (n int, err error) {
 }
 
 //------------------------------------------------------------------------------
+// Open connects to the Finch device and returns a Finch struct
 func Open() (finch *Finch, err error) {
   var device_handle *hid.Device
   device_handle, err = hid.Open(VENDOR_ID, DEVICE_ID, "")
@@ -82,6 +89,8 @@ func Open() (finch *Finch, err error) {
 }
 
 //------------------------------------------------------------------------------
+// SetLed sets the LED of the Finch. You can specify the red, green and blue
+// intensities from the params in range of 0-255.
 func (finch *Finch) SetLed(red, green, blue byte) (n int, err error) {
   data := prepareFinchRequest()
   data[1] = 'O'   // Ascii character 'O' for LED color set
@@ -94,6 +103,9 @@ func (finch *Finch) SetLed(red, green, blue byte) (n int, err error) {
 }
 
 //------------------------------------------------------------------------------
+// SetMotor sets the motor speed and wheel direction of the Finch. The direction
+// must be either 0 or 1. 0 meaning forward and 1 meaning reverse. The speed
+// must be within 0 to 255.
 func (finch *Finch) SetMotor(left_wheel_direction,
                                   left_wheel_speed,
                                   right_wheel_direction,
@@ -120,6 +132,7 @@ func (finch *Finch) SetMotor(left_wheel_direction,
 }
 
 //------------------------------------------------------------------------------
+// TurnOffMotorAndLEDs sets all motors and LEDs to off.
 func (finch *Finch) TurnOffMotorAndLEDs() (n int, err error) {
   data := prepareFinchRequest()
   data[1] = 'X'
@@ -129,6 +142,8 @@ func (finch *Finch) TurnOffMotorAndLEDs() (n int, err error) {
 }
 
 //------------------------------------------------------------------------------
+// SetIdleMode turns off the motor and has the Finch go back to
+// color-cycling mode
 func (finch *Finch) SetIdleMode() (n int, err error) {
   data := prepareFinchRequest()
   data[1] = 'R'
@@ -138,6 +153,10 @@ func (finch *Finch) SetIdleMode() (n int, err error) {
 }
 
 //------------------------------------------------------------------------------
+// SetBuzzer sets the buzzer to chirp for a specified period of time.
+// There's an additional wait parameter which will block the function call
+// for the time period it is set to chirp. Otherwise it will return
+// immediately.
 func (finch *Finch) SetBuzzer(msec, freq int, wait bool) (n int, err error) {
   data := prepareFinchRequest()
   data[1] = 'B'   // Ascii character 'O' for LED color set
@@ -155,6 +174,7 @@ func (finch *Finch) SetBuzzer(msec, freq int, wait bool) (n int, err error) {
 }
 
 //------------------------------------------------------------------------------
+// GetTemperature returns the temp in celsius.
 func (finch *Finch) GetTemperature() (temp float64, err error) {
   finch.incrementSequenceNumber()
 
@@ -177,6 +197,8 @@ func (finch *Finch) GetTemperature() (temp float64, err error) {
 }
 
 //------------------------------------------------------------------------------
+// GetLight returns the values from the two light sensors. The values
+// are in the range of 0-255
 func (finch *Finch) GetLight() (left_sensor, right_sensor byte, err error) {
   finch.incrementSequenceNumber()
 
@@ -200,6 +222,8 @@ func (finch *Finch) GetLight() (left_sensor, right_sensor byte, err error) {
 }
 
 //------------------------------------------------------------------------------
+// GetAcceleration returns the accelerometer values of the x, y and z axis.
+// And also the tap/shake byte
 func (finch *Finch) GetAcceleration() (x_axis, y_axis, z_axis float64,
                                        tap, shake bool,
                                        err error) {
@@ -223,6 +247,7 @@ func (finch *Finch) GetAcceleration() (x_axis, y_axis, z_axis float64,
 
   // A closure to convert the raw machine data into g's
   convertToG := func(b byte) float64 {
+    // This the calculation to convert the raw machine data to g
     if b > 31 {
       b -= 64
     }
@@ -235,9 +260,11 @@ func (finch *Finch) GetAcceleration() (x_axis, y_axis, z_axis float64,
   bit_5 := data[4] & 0x20
   bit_7 := data[4] & 0x80
 
+  // If bit 5 is a 0, then finch has been tapped since the last read
   if bit_5 == 0 {
     tap = true
   }
+  // If bit 7 is a 1, then finch has been shaken since the last read
   if bit_7 == 1 {
     shake = true
   }
@@ -245,6 +272,8 @@ func (finch *Finch) GetAcceleration() (x_axis, y_axis, z_axis float64,
 }
 
 //------------------------------------------------------------------------------
+// GetObstacles returns the values of the two obstacle sensors. true means
+// obstacle is present, and false means absent
 func (finch *Finch) GetObstacles() (left_sensor, right_sensor bool, err error) {
   finch.incrementSequenceNumber()
 
@@ -281,6 +310,7 @@ func (finch *Finch) GetObstacles() (left_sensor, right_sensor bool, err error) {
 }
 
 //------------------------------------------------------------------------------
+// Close sets the Finch to idle mode and then closes the connection to it.
 func (finch *Finch) Close() () {
   // First going to idle mode
   finch.SetIdleMode()

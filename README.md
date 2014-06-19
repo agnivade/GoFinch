@@ -21,9 +21,13 @@ Assumptions
 Pre requisites
 --------------
 1. You need to have [Go](http://golang.org/) installed on your system.
+
 2. Install libusb.
+
     sudo apt-get install libusb-1.0-0-dev
-2. You need to have libhidapi installed in your system.
+
+3. You need to have libhidapi installed in your system.
+
     git clone git@github.com:signal11/hidapi.git
     cd hidapi
     ./bootstrap
@@ -32,11 +36,12 @@ Pre requisites
     cd libusb
     make
     sudo make install
-
+    
     cd /usr/local/lib
     sudo ln -s libhidapi-libusb.so libhidapi.so
-    
-    On my system, it looks like this-
+
+On my system, it looks like this-
+
     ls -l /usr/local/lib/ | grep libusb
     -rw-r--r-- 1 root root   77918 Jun 12 01:18 libhidapi-libusb.a
     -rwxr-xr-x 1 root root    1017 Jun 12 01:18 libhidapi-libusb.la
@@ -45,9 +50,8 @@ Pre requisites
     -rwxr-xr-x 1 root root   67598 Jun 12 01:18 libhidapi-libusb.so.0.0.0
     lrwxrwxrwx 1 root root      21 Jun 12 01:57 libhidapi.so -> libhidapi-libusb.so.0
 
-
-3. You need to have a Finch to be able to use the API. (Well duh..)
-4. Please set up your GOPATH properly.
+4. You need to have a Finch to be able to use the API. (Well duh..)
+5. Please set up your GOPATH properly.
 
 
 Now you need to download this package

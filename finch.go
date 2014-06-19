@@ -5,15 +5,19 @@ package finch
 import (
   "fmt"
   "time"
+  "sync"
   "github.com/GeertJohan/go.hid"
   )
 // TODO: change the return types to use structs instead of
 // returning individual values
 
+// Finch is a struct which is returned from the Open call. Calls to
+// different API functions are safe to be called from different goroutines
 type Finch struct {
   finch_handle *hid.Device
   sequence_number byte
   read_timeout_msec int
+  mutex sync.Mutex
 }
 
 //------------------------------------------------------------------------------
@@ -31,21 +35,25 @@ func prepareFinchRequest() (data []byte) {
 // Increments the sequence no. of the request to finch
 // Rolls over to 0 if it exceeds 255
 func (finch *Finch) incrementSequenceNumber() {
+  finch.mutex.Lock()
   if finch.sequence_number+1 > 255 {
     finch.sequence_number = 0
   } else {
     finch.sequence_number++
   }
+  finch.mutex.Unlock()
 }
 
 //------------------------------------------------------------------------------
 // Helper function which writes to finch given a byte slice
 func (finch *Finch) writeToFinch(data []byte) (n int, err error) {
   n = 0
+  finch.mutex.Lock()
   // Writing until we see that we have atleast written something
   for n==0 {
     n, err = finch.finch_handle.Write(data)
   }
+  finch.mutex.Unlock()
   return
 }
 
@@ -57,6 +65,7 @@ func (finch *Finch) readFromFinch(data []byte) (n int, err error) {
     return 0, nil
   }
 
+  finch.mutex.Lock()
   // Reading until there is nothing else to read
   for n > 0 {
     n, err = finch.finch_handle.ReadTimeout(data, finch.read_timeout_msec)
@@ -68,6 +77,7 @@ func (finch *Finch) readFromFinch(data []byte) (n int, err error) {
       return
     }
   }
+  finch.mutex.Unlock()
   return
 }
 
@@ -306,6 +316,32 @@ func (finch *Finch) GetObstacles() (left_sensor, right_sensor bool, err error) {
     right_sensor = true
   }
 
+  return
+}
+
+//------------------------------------------------------------------------------
+// Ping sends a ping request to the Finch. To be used for keep-alive or
+// communication tests only. You might find it useful to prevent the Finch
+// from going to the color cycling mode. That's because the Finch goes back
+// to its color cycling mode if it does not get commands every 5 secs.
+func (finch *Finch) Ping() (counter byte, err error) {
+  finch.incrementSequenceNumber()
+
+  data := prepareFinchRequest()
+  data[1] = 'z'
+  data[8] = finch.sequence_number
+
+  _, err = finch.writeToFinch(data)
+  if err != nil {
+    return 0, nil
+  }
+
+  _, err = finch.readFromFinch(data)
+  if err != nil {
+    return 0, nil
+  }
+
+  counter = data[0]
   return
 }
 

@@ -53,7 +53,6 @@ lrwxrwxrwx 1 root root      21 Jun 12 01:57 libhidapi.so -> libhidapi-libusb.so.
 4. You need to have a Finch to be able to use the API. (Well duh..)
 5. Please set up your [GOPATH](http://golang.org/doc/code.html#GOPATH) properly.
 
-
 Now you need to download this package. Enter this inside your "src" folder.
 ```
 go get github.com/agnivade/GoFinch

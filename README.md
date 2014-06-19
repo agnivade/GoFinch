@@ -51,12 +51,13 @@ lrwxrwxrwx 1 root root      25 Jun 12 01:18 libhidapi-libusb.so.0 -> libhidapi-l
 lrwxrwxrwx 1 root root      21 Jun 12 01:57 libhidapi.so -> libhidapi-libusb.so.0
 ```
 4. You need to have a Finch to be able to use the API. (Well duh..)
-5. Please set up your GOPATH properly.
+5. Please set up your [GOPATH](http://golang.org/doc/code.html#GOPATH) properly.
 
 
-Now you need to download this package
+Now you need to download this package. Enter this inside your "src" folder.
+```
 go get github.com/agnivade/GoFinch
-
+```
 Now start using the API and have fun !
 
 Examples
@@ -105,7 +106,7 @@ func main() {
 
   _, err = finch_handle.SetLed(100,200,0)
   if err != nil {
-    log.Fatalf("Error in setting Finch LED")
+    log.Fatalf("Error in setting Finch LED- %s", err)
     return
   }
   time.Sleep(2*time.Second)

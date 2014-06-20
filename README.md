@@ -20,13 +20,13 @@ Assumptions
 
 Pre requisites
 --------------
-1. You need to have [Go](http://golang.org/) installed on your system.
+- You need to have [Go](http://golang.org/) installed on your system.
 
-2. Install libusb.
+- Install libusb.
 ```
 sudo apt-get install libusb-1.0-0-dev
 ```
-3. You need to have libhidapi installed in your system.
+- You need to have libhidapi installed in your system.
 ```
 git clone git@github.com:signal11/hidapi.git
 cd hidapi
@@ -50,14 +50,19 @@ lrwxrwxrwx 1 root root      25 Jun 12 01:18 libhidapi-libusb.so.0 -> libhidapi-l
 -rwxr-xr-x 1 root root   67598 Jun 12 01:18 libhidapi-libusb.so.0.0.0
 lrwxrwxrwx 1 root root      21 Jun 12 01:57 libhidapi.so -> libhidapi-libusb.so.0
 ```
-4. You need to have a Finch to be able to use the API. (Well duh..)
-5. Please set up your [GOPATH](http://golang.org/doc/code.html#GOPATH) properly.
+- You need to have a Finch to be able to use the API. (Well duh..)
+- Please set up your [GOPATH](http://golang.org/doc/code.html#GOPATH) properly.
 
 Now you need to download this package. Enter this inside your "src" folder.
 ```
 go get github.com/agnivade/GoFinch
 ```
 Now start using the API and have fun !
+
+Documentation
+=============
+
+Documentation for this site can be found here- https://godoc.org/github.com/agnivade/GoFinch
 
 Examples
 ========

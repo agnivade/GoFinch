@@ -131,11 +131,11 @@ func (finch *Finch) SetMotor(left_wheel_direction,
   }
 
   data := prepareFinchRequest()
-  data[1] = 'M'   // Ascii character 'O' for LED color set
-  data[2] = left_wheel_direction   // value of red
-  data[3] = left_wheel_speed // value of green
-  data[4] = right_wheel_direction  // value of blue
-  data[5] = right_wheel_speed  // dummy data
+  data[1] = 'M'   // Ascii character 'M' for setting motor
+  data[2] = left_wheel_direction
+  data[3] = left_wheel_speed
+  data[4] = right_wheel_direction
+  data[5] = right_wheel_speed
 
   n, err = finch.writeToFinch(data)
   return
@@ -169,11 +169,11 @@ func (finch *Finch) SetIdleMode() (n int, err error) {
 // immediately.
 func (finch *Finch) SetBuzzer(msec, freq int, wait bool) (n int, err error) {
   data := prepareFinchRequest()
-  data[1] = 'B'   // Ascii character 'O' for LED color set
-  data[2] = byte(msec >> 8)   // value of red
-  data[3] = byte(msec) // value of green
-  data[4] = byte(freq >> 8)  // value of blue
-  data[5] = byte(freq)  // dummy data
+  data[1] = 'B'
+  data[2] = byte(msec >> 8)   // MSB of the duration on msec
+  data[3] = byte(msec) // LSB of the duration in msec
+  data[4] = byte(freq >> 8)  // MSB of the frequency in Hz
+  data[5] = byte(freq)  // LSB of the frequency in Hz
 
   n, err = finch.writeToFinch(data)
 
@@ -189,8 +189,8 @@ func (finch *Finch) GetTemperature() (temp float64, err error) {
   finch.incrementSequenceNumber()
 
   data := prepareFinchRequest()
-  data[1] = 'T'   // Ascii character 'O' for LED color set
-  data[8] = finch.sequence_number  // dummy data
+  data[1] = 'T'
+  data[8] = finch.sequence_number
 
   _, err = finch.writeToFinch(data)
   if err != nil {

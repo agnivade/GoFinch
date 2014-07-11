@@ -257,11 +257,12 @@ func (finch *Finch) GetAcceleration() (x_axis, y_axis, z_axis float64,
 
   // A closure to convert the raw machine data into g's
   convertToG := func(b byte) float64 {
-    // This the calculation to convert the raw machine data to g
-    if b > 31 {
-      b -= 64
+    // This is the calculation to convert the raw machine data to g
+    var signed_int = int8(b) //cast to signed integer to allow negative values
+    if signed_int > 31 {
+      signed_int -= 64
     }
-    return float64(b)*1.5 / 32
+    return float64(signed_int)*1.5 / 32
   }
   x_axis = convertToG(data[1])
   y_axis = convertToG(data[2])

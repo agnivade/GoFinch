@@ -59,7 +59,9 @@ lrwxrwxrwx 1 root root      21 Jun 12 01:57 libhidapi.so -> libhidapi-libusb.so.
 
 - You need to compile libhidapi and get a .dll file out of it. It is essential that you have Visual Studio in your system.
 
+```
 git clone git@github.com:signal11/hidapi.git
+```
 
 Go to the windows folder inside the cloned repo. It will contain the visual studio solution file. Build the solution and get the .dll file.
 

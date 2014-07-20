@@ -12,8 +12,6 @@ Please refer to the [Finch Home Page](http://www.finchrobot.com/) for further de
 Installation
 ============
 
-Right now, this is only tested on Ubuntu 12.04 machine.
-
 Assumptions
 -----------
 1. Your code workspace must be structured like mentioned here - http://golang.org/doc/code.html
@@ -22,9 +20,15 @@ Pre requisites
 --------------
 - You need to have [Go](http://golang.org/) installed on your system.
 
+### For Linux (Ubuntu)
+
+- Install the build essentials package. Just in case you don't have it in your system
+```
+sudo apt-get install build-essential
+```
 - Install libusb.
 ```
-sudo apt-get install libusb-1.0-0-dev
+sudo apt-get install libudev-dev libtool libusb-1.0-0-dev
 ```
 - You need to have libhidapi installed in your system.
 ```
@@ -50,6 +54,23 @@ lrwxrwxrwx 1 root root      25 Jun 12 01:18 libhidapi-libusb.so.0 -> libhidapi-l
 -rwxr-xr-x 1 root root   67598 Jun 12 01:18 libhidapi-libusb.so.0.0.0
 lrwxrwxrwx 1 root root      21 Jun 12 01:57 libhidapi.so -> libhidapi-libusb.so.0
 ```
+
+### For Windows
+
+- You need to compile libhidapi and get a .dll file out of it. It is essential that you have Visual Studio in your system.
+
+git clone git@github.com:signal11/hidapi.git
+
+Go to the windows folder inside the cloned repo. It will contain the visual studio solution file. Build the solution and get the .dll file.
+
+Then place the file inside your C:\Windows\System32 folder.
+
+- Also install the [MinGW package](http://www.mingw.org/wiki/Getting_Started).
+
+After this use the MinGW package manager to install the latest gcc and libiconv package. You should also add the MinGW folder location to your PATH variable.
+
+### Rest is common to both Windows and Linux
+
 - You need to have a Finch to be able to use the API. (Well duh..)
 - Please set up your [GOPATH](http://golang.org/doc/code.html#GOPATH) properly.
 
@@ -67,7 +88,7 @@ Documentation for this site can be found here- https://godoc.org/github.com/agni
 Examples
 ========
 
-You might need to set the LD_LIBRARY_PATH environment variable to /usr/local/lib directory before running the main program.
+You might need to set the LD_LIBRARY_PATH environment variable to /usr/local/lib directory before running the main program. (This is only for Linux)
 ```go
 package main
 

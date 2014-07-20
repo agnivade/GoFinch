@@ -35,25 +35,25 @@ func prepareFinchRequest() (data []byte) {
 // Increments the sequence no. of the request to finch
 // Rolls over to 0 if it exceeds 255
 func (finch *Finch) incrementSequenceNumber() {
-  finch.mutex.Lock()
-  if finch.sequence_number+1 > 255 {
-    finch.sequence_number = 0
-  } else {
-    finch.sequence_number++
-  }
-  finch.mutex.Unlock()
+  finch.withLockContext(func () {
+    if finch.sequence_number+1 > 255 {
+      finch.sequence_number = 0
+    } else {
+      finch.sequence_number++
+    }
+  })
 }
 
 //------------------------------------------------------------------------------
 // Helper function which writes to finch given a byte slice
 func (finch *Finch) writeToFinch(data []byte) (n int, err error) {
   n = 0
-  finch.mutex.Lock()
-  // Writing until we see that we have atleast written something
-  for n==0 {
-    n, err = finch.finch_handle.Write(data)
-  }
-  finch.mutex.Unlock()
+  finch.withLockContext(func () {
+    // Writing until we see that we have atleast written something
+    for n==0 {
+      n, err = finch.finch_handle.Write(data)
+    }
+  })
   return
 }
 
@@ -65,20 +65,30 @@ func (finch *Finch) readFromFinch(data []byte) (n int, err error) {
     return 0, nil
   }
 
-  finch.mutex.Lock()
-  // Reading until there is nothing else to read
-  for n > 0 {
-    n, err = finch.finch_handle.ReadTimeout(data, finch.read_timeout_msec)
-    // Breaking if we see that the sequence no. matches
-    if data[7] == data[8] {
-      break
+  finch.withLockContext(func () {
+    // Reading until there is nothing else to read
+    for n > 0 {
+      n, err = finch.finch_handle.ReadTimeout(data, finch.read_timeout_msec)
+      // Breaking if we see that the sequence no. matches
+      if data[7] == data[8] {
+        break
+      }
+      if err != nil {
+        return
+      }
     }
-    if err != nil {
-      return
-    }
-  }
-  finch.mutex.Unlock()
+  })
   return
+}
+
+//------------------------------------------------------------------------------
+// Helper function which creates a lock context within which to run
+// atomic operations which can be called from multiple goroutines
+func (finch *Finch) withLockContext(fn func()) {
+  finch.mutex.Lock()
+  defer finch.mutex.Unlock()
+
+  fn()
 }
 
 //------------------------------------------------------------------------------

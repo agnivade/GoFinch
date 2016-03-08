@@ -24,7 +24,7 @@ Pre requisites
 
 - Install the build essentials package. Just in case you don't have it in your system
 ```
-sudo apt-get install build-essential
+sudo apt-get install build-essential dh-autoreconf
 ```
 - Install libusb.
 ```
